@@ -1,5 +1,5 @@
 import robotparser, time
-import client
+import client, archive
 
 USER_AGENT="GopherArchive/0.0"
 
@@ -14,15 +14,20 @@ def allowed(host, port, path):
 def _getrobots(host, port):
 	key=host+":"+str(port)
 	cache=None
-	if _cache.has_key(key) and _cache[key]['modified'] > time.time() - 60*60*24:
+	if _cache.has_key(key) and not _expired(_cache[key]['modified']):
 		# Try to get it from the in-memory cache
 		cache=_cache[key]
 	if cache == None: # Nope, not in memory (or in-memory cache expired)
 		cache={}
 		data=None
 		modified=None
-		# TODO try to get it from the database
-		if data == None: # We still don't have it!
+		# try to get it from the database
+		robots=archive.getlatest(host, port, "robots.txt")
+		print robots
+		if robots is not None and not _expired(robots['timestamp']):
+			data=archive.getHash(robots['hash'])
+			modified=robots['timestamp']
+		else: # We still don't have it!
 			# Retrieve it from the host
 			data=client.get(host, port, "robots.txt")
 			modified=time.time()
@@ -32,3 +37,6 @@ def _getrobots(host, port):
 		_cache[key]=cache
 		
 	return cache['parsed']
+
+def _expired(timestamp):
+	return timestamp < time.time() - 60*60*24;

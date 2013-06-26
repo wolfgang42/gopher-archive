@@ -35,12 +35,12 @@ while True:
 	except KeyError:
 		fileHash = "" # No object
 	
-	db.execute("INSERT INTO files VALUES (?, ?, ?, ?, ?, ?, ?, ?);", host, port, dtype, path, state, timestamp, log, fileHash)
+	gopher.archive.dbsave(host, port, dtype, path, state, timestamp, log, fileHash)
 	
 	count += 1
 	print count, "files imported...\r",
 
 print "Committing database...\r",
-db.commit()
+gopher.archive.dbcommit()
 print "Import complete.", count, "files imported."
 
