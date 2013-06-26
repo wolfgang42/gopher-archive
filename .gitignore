@@ -1,0 +1,5 @@
+gopher-arch.tar.bz2
+gopher-arch-sqldump.bz2
+data.sqlite
+data/
+*.pyc
