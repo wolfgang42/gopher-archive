@@ -23,7 +23,6 @@ def _getrobots(host, port):
 		modified=None
 		# try to get it from the database
 		robots=archive.getlatest(host, port, "robots.txt")
-		print robots
 		if robots is not None and not _expired(robots['timestamp']):
 			data=archive.getHash(robots['hash'])
 			modified=robots['timestamp']
