@@ -23,6 +23,42 @@ def get(host, port=70, selector="", query=None):
 	if state=="ErrorState": raise IOError(log)
 	return document # TODO raise exception instead?
 
+def parsemenu(menu):
+	(dot,menu)=_normalizemenu(menu)
+	for line in menu.split("\n"):
+		yield parsemenuitem(line)
+	if (dot):
+		# yield an item for the dot, so it can be displayed as suggested
+		yield parsemenuitem('i.\t\t\t')
+
+# Convert all newlines to \n
+def normalizenewlines(string):
+	return string.replace("\r\n","\n").replace("\r","\n")
+
+# Returns a tuple (dot, menu)
+# dot:  Whether the menu ended with a dot
+# menu: The menu, sans dot (if it was there to begin with), and with all newlines
+#       normalized to \n
+def normalizemenu(menu):
+	menu=_normalizenewlines(menu)
+	if menu.endswith("\n."):
+		return (True,  menu[:-2])
+	elif menu.endswith("\n.\n"):
+		return (True,  menu[:-3])
+	else:
+		return (False, menu)
+
+def parsemenuitem(line):
+	split=line.split("\t")
+	item={}
+	item['type']      = split[0][0]
+	item['title']     = split[0][1:]
+	item['selector']  = split[1]
+	item['host']      = split[2]
+	item['port']      = split[3]
+	item['remainder'] = split[4:] # Everything else, just in case (e.g. Gopher+)
+	return item
+
 def _cache(host, port, path, state, log, result):
 	if state == "Visited" and not robots.allowed(host, port, path):
 			state = "Excluded"
