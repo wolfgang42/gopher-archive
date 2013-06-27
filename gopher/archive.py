@@ -1,4 +1,4 @@
-import os, sqlite3, hashlib
+import os, sqlite3, hashlib, atexit
 
 _db=sqlite3.connect('data.sqlite')
 
@@ -45,3 +45,8 @@ def dbsave(host, port, dtype, path, state, timestamp, log, fileHash, autoCommit=
 
 def dbcommit():
 	_db.commit()
+
+@atexit.register
+def dbclose():
+	dbcommit()
+	_db.close()
