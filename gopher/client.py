@@ -24,7 +24,7 @@ def get(host, port=70, selector="", query=None):
 	return document # TODO raise exception instead?
 
 def parsemenu(menu):
-	(dot,menu)=_normalizemenu(menu)
+	(dot,menu)=normalizetext(menu)
 	for line in menu.split("\n"):
 		yield parsemenuitem(line)
 	if (dot):
@@ -39,14 +39,16 @@ def normalizenewlines(string):
 # dot:  Whether the menu ended with a dot
 # menu: The menu, sans dot (if it was there to begin with), and with all newlines
 #       normalized to \n
-def normalizemenu(menu):
-	menu=_normalizenewlines(menu)
-	if menu.endswith("\n."):
-		return (True,  menu[:-2])
-	elif menu.endswith("\n.\n"):
-		return (True,  menu[:-3])
+def normalizetext(text):
+	text=normalizenewlines(text)
+	if text.endswith("\n.\n"):
+		return (True,  text[:-3])
+	elif text.endswith("\n."):
+		return (True,  text[:-2])
+	elif text.endswith("\n"):
+		return (False, text[:-1])
 	else:
-		return (False, menu)
+		return (False, text)
 
 def parsemenuitem(line):
 	split=line.split("\t")
@@ -56,7 +58,7 @@ def parsemenuitem(line):
 	item['selector']  = split[1]
 	item['host']      = split[2]
 	item['port']      = split[3]
-	item['remainder'] = split[4:] # Everything else, just in case (e.g. Gopher+)
+	item['remainder'] = "\t".join(split[4:]) # Everything else, just in case (e.g. Gopher+)
 	return item
 
 def _cache(host, port, path, state, log, result):
