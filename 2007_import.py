@@ -10,37 +10,41 @@
 import tarfile, bz2
 import gopher.archive
 
-tar=tarfile.open('gopher-arch.tar.bz2')
-sql=bz2.BZ2File('gopher-arch-sqldump.bz2')
+def main():
+	tar=tarfile.open('gopher-arch.tar.bz2')
+	sql=bz2.BZ2File('gopher-arch-sqldump.bz2')
 
-# Seek to beginning of list
-while True:
-	if sql.readline().startswith("COPY files"): break
+	# Seek to beginning of list
+	while True:
+		if sql.readline().startswith("COPY files"): break
 
-count=0;
-while True:
-	line=sql.readline()
-	if sql.readline().startswith("\."): break # End of list
+	count=0
+	while True:
+		line=sql.readline()
+		if sql.readline().startswith("\."): break # End of list
 	
-	(host, port, dtype, path, state, timestamp, log) = line.split("\t")
+		(host, port, dtype, path, state, timestamp, log) = line.split("\t")
 	
-	# Create a path and make it conform to UNIX path format
-	tarpath = "/".join([host,port,path])
-	if tarpath.endswith("/"): tarpath += '.gophermap'
-	tarpath=tarpath.replace('/../','/')
-	tarpath=tarpath.replace('//','/')
+		# Create a path and make it conform to UNIX path format
+		tarpath = "/".join([host,port,path])
+		if tarpath.endswith("/"): tarpath += '.gophermap'
+		tarpath=tarpath.replace('/../','/')
+		tarpath=tarpath.replace('//','/')
 	
-	try: # Get the file and save it as an object
-		fileHash=gopher.archive.hashFile(tar.getmember(tarpath).tobuf())
-	except KeyError:
-		fileHash = "" # No object
+		try: # Get the file and save it as an object
+			fileHash=gopher.archive.hashFile(tar.getmember(tarpath).tobuf())
+		except KeyError:
+			fileHash = "" # No object
 	
-	gopher.archive.dbsave(host, port, dtype, path, state, timestamp, log, fileHash)
+		gopher.archive.dbsave(host, port, dtype, path, state, timestamp, log, fileHash)
 	
-	count += 1
-	print count, "files imported...\r",
+		count += 1
+		print count, "files imported...\r",
 
-print "Committing database...\r",
-gopher.archive.dbcommit()
-print "Import complete.", count, "files imported."
+	print "Committing database...\r",
+	gopher.archive.dbcommit()
+	print "Import complete.", count, "files imported."
+
+if __name__ == "__main__":
+	main()
 
